@@ -54,5 +54,5 @@ A brief TODO list
 - squash script should easily be able to export/import squashfs app image from/to `.tar` compatible with OCI and runnable as container with runc and friends
 - run in a unikernel-style by tacking on a suitable bootloader+kernel combo
 - run as true unikernel on KVM/Xen/etc., by utilizing some of ideas of [unikraft](http://www.unikraft.org) and related projects
-- try to find even more simple and efficint ways to run it removing excessive moving parts or supporting more targets with single image file
+- try to find even more simple and efficient ways to run it removing excessive moving parts or supporting more targets with single image file
 
