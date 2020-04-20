@@ -30,18 +30,17 @@ The ingredients:
 
 ### Synopsis
 ```shell
-./squashapp examples/hello
+./squash pack examples/hello
 ... # (shows packing progress or asks for squashfs-tools to be installed)
 
-./squashapp run examples/hello.squash.app
+./squash run examples/hello.squash.app
 
 ... # caches the image in $HOME/.squash-apps and unpacks to run the app, ultimately displaying "Hello, world"
 
 # as a short-cut run command may be omited
-./squashapp run examples/hello.squash.app
+./squash examples/hello.squash.app
 
 ... # since it's 2nd time should display "Running from cache (last modified <date-time>)" to stderr and runs the same Hello, world sample
-
 
 ```
 
@@ -51,8 +50,8 @@ A brief TODO list
 
 - more examples and how-tos for established languages and build tools
 - outline how to build multi-platform and multi-arch images
-- sqashapp should provide simple sign/verify/keygen helper "commands" forwarding to gpg, of course
-- squashapp script should easily be able to export/import squashfs app image from/to `.tar` compatible with OCI and runnable as container with runc and friends
+- squash should provide simple sign/verify/keygen helper "commands" forwarding to gpg, of course
+- squash script should easily be able to export/import squashfs app image from/to `.tar` compatible with OCI and runnable as container with runc and friends
 - run in a unikernel-style by tacking on a suitable bootloader+kernel combo
 - run as true unikernel on KVM/Xen/etc., by utilizing some of ideas of [unikraft](http://www.unikraft.org) and related projects
 - try to find even more simple and efficint ways to run it removing excessive moving parts or supporting more targets with single image file
