@@ -24,7 +24,7 @@ A single squashfs can easily represent "fat binary" by using a portable loader s
 The ingredients:
 - [squashfs](https://github.com/plougher/squashfs-tools) - a compressed filesystem
 - [gpg](https://www.gnupg.org/) - a tool to easily encrypt and sign/verify files
-- [squashapp](./squashapp) - a simple portable `/bin/sh` script to run, verify, sign and (re)pack squashfs images of apps, depends on the former 2 tools
+- [squash](./squash) - a simple portable `/bin/sh` script to run, verify, sign and (re)pack squashfs images of apps, depends on the former 2 tools
 - any web server or network fileshare to serve the signed squashfs files to the end user
 - any of your usual file system and command-line tools
 
