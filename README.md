@@ -1,6 +1,6 @@
 # Squash App
 
-## A simple and compact application image tool
+## A simple and compact application image
 
 
 ### Why?
