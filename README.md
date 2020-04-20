@@ -1,7 +1,9 @@
-# Squash App - a simple and compact binary image packaging tool
+# Squash App
+
+## A simple and compact binary image packaging tool
 
 
-## Why?
+### Why?
 
 I believe we (the IT lot) made to many incompatible ways to package software,
 and there is a whole industry built around its packaging and repackaging.
@@ -17,7 +19,7 @@ The goal of Squash App is to show that:
 4. One compressed file - a multitude of platforms (OS and virutal or real hardware architectures) to run on. 
 A single squashfs can easily represent "fat binary" by using a portable loader shell script as /bin/init.
 
-## How?
+### How?
 
 The ingredients:
 - [squashfs](https://github.com/plougher/squashfs-tools) - a compressed filesystem
@@ -26,8 +28,8 @@ The ingredients:
 - any web server or network fileshare to serve the signed squashfs files to the end user
 - any of your usual file system and command-line tools
 
-Synopsis
-```
+### Synopsis
+```shell
 ./squashapp examples/hello
 ... # (shows packing progress or asks for squashfs-tools to be installed)
 
@@ -43,7 +45,7 @@ Synopsis
 
 ```
 
-## Future work
+### Future work
 
 A brief TODO list
 
