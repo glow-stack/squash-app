@@ -5,13 +5,32 @@ if [ "$(which mksquashfs)" == "" ] ; then
 	exit 2
 fi
 
+
+# for number $1, check if $1 is in [$2, $3]
+in_range() {
+	[ $1 -ge $2 ] && [ $1 -le $3 ]
+}
+
+# $1 - example text
+usage() {
+	echo "Usage:" >&2 && echo "	$1" >&2 && exit 1
+}
+# $@ - messages
+die() {
+	echo "$@" >&2
+	exit 1
+}
+
+MAXARGS=32000
+
 case $1 in
-	run) 
-		TARGET=$2
+	run)
+		in_range $# 2 $MAXARGS || usage "squash run your-app.squash.app" 
+		TARGET="$2"
 		BIN="$(readlink -f $TARGET)"
 		NAME="$(basename $TARGET)"
 		shift 2
-		[ "$BIN" == "" ] && echo "Cannot find file to run using path '$TARGET'" && exit 1 
+		[ "$BIN" != "" ] || die "Cannot find file to run: '$TARGET'" 
 		DEST="$HOME/.squash-apps/$NAME"
 		CACHE="$HOME/.squash-apps/.cache"
 		mkdir -p "$DEST"
@@ -26,33 +45,45 @@ case $1 in
 			DATE=$(date -r $TS)
 			echo "Running from cache (last modifed $DATE)" >&2 
 		fi
+		if uname | grep "FreeBSD" > /dev/null ; then
+			echo "SquashApp on FreeBSD: trying to sandbox inside of jail"
+			
+		fi
 		cd $DEST && exec "$DEST/bin/init"
 	;;	
 	cat)
-		TARGET=$2
-		shift 2
-		unsquashfs -l "$TARGET" | sed -r 's|^squashfs-root||g' | grep "/"
+		in_range $# 2 $MAXARGS || usage "squash cat app1.squash.app app2.squash.app ..." 
+		shift 1
+		for arg in $@ ; do
+			unsquashfs -l "$arg" | sed -r 's|^squashfs-root||g' | grep "/"
+		done
 	;;
 	list)
-		ls ~/.squash-apps
+		in_range $# 1 2 || usage "squash list [<grep pattern>]" 
+		ls ~/.squash-apps | tr ' ' '\n' |
+			if [ "$2" != "" ] ; then 
+				grep "$2"
+			else
+				cat
+			fi
 	;;
 	install)
 		echo "Not implemented yet" >&2
 	;;
 	pack)
 		shift 1
-		! [ -d $1 ] && echo "squashapp pack: $1 is not a directory" && exit 1
-		if [ -f $1.squash.app ] ; then
+		APP="$1.squash.app"
+		[ -d $1 ] || die "squash pack: $1 is not a directory"
+		if [ -f "$APP" ] ; then
 			echo -n "Overwrite $1.squash.app?(Y/n)"
-			read ans  
-			[ "$ans" != "Y" ] && [ "$ans" != "y" ] && [ "$ans" != "" ] && exit 1
-			! unlink $1.squash.app && echo "squashapp pack: failed to remove $1.squash.app" >&2 && exit 1
+			read ans 
+			[ "$ans" != "Y" ] && [ "$ans" != "y" ] && [ "$ans" != "" ] && die "squash pack: stopped, $APP is intact"
+			unlink "$APP" || die "squash pack: failed to remove $APP"
 		fi
 		mksquashfs $1 $1.squash.app
 	;;
 	unpack)
-		shift 1
-		
+		shift 1		
 	;;
 	*)
 		if [ -f $1 ] ; then
