@@ -5,11 +5,11 @@
 
 ### Why?
 
-I believe we (the IT lot) made to many incompatible ways to package software,
+I believe we (the IT lot) made way too many incompatible ways to package software,
 and there is a whole industry built around its packaging and repackaging.
 
 What should have been a mundane task, dealt with once and for good is a steaming
-mess of competing projects with increasingly complex architectures.
+mess of competing projects with increasingly byzantine architectures.
 
 The goal of Squash App is to show that:
 
