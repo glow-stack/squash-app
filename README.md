@@ -15,7 +15,7 @@ The goal of Squash App is to show that:
 
 1. We already had all of the required tools to neatly package software before containers, snap, flatpak, etc. were a thing.
 2. One app - one (fast to mount/decompress & run) file and a signature for it. All you need is 1 or 2 files.
-3. Simple file formats existing in the wild for over a decade (squashfs image format, gpg signature).
+3. Simple file formats existing in the wild for over a decade is a win for end user (squashfs image format, gpg signature).
 4. One compressed file - a multitude of platforms (OS and virutal or real hardware architectures) to run on. 
 A single squashfs can easily represent "fat binary" by using a portable loader shell script as /bin/init.
 
