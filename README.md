@@ -1,6 +1,6 @@
 # Squash App
 
-## A simple and compact binary image packaging tool
+## A simple and compact application image tool
 
 
 ### Why?
