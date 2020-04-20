@@ -1,0 +1,65 @@
+#!/bin/sh
+
+if [ "$(which mksquashfs)" == "" ] ; then
+	echo "Cannot find mksquashfs - do you have squashfs tools installed?" >&2
+	exit 2
+fi
+
+case $1 in
+	run) 
+		TARGET=$2
+		BIN="$(readlink -f $TARGET)"
+		NAME="$(basename $TARGET)"
+		shift 2
+		[ "$BIN" == "" ] && echo "Cannot find file to run using path '$TARGET'" && exit 1 
+		DEST="$HOME/.squash-apps/$NAME"
+		CACHE="$HOME/.squash-apps/.cache"
+		mkdir -p "$DEST"
+		mkdir -p "$CACHE"
+		if ! diff "$BIN" "$CACHE/$NAME" > /dev/null ; then
+			cp "$BIN" "$CACHE/$NAME"
+			cd $DEST
+			rm -rf *
+			unsquashfs -f $BIN | grep -v created && mv squashfs-root/* . && rmdir squashfs-root
+		else
+			TS=$(stat -f %m "$CACHE/$NAME")
+			DATE=$(date -r $TS)
+			echo "Running from cache (last modifed $DATE)" >&2 
+		fi
+		cd $DEST && exec "$DEST/bin/init"
+	;;	
+	cat)
+		TARGET=$2
+		shift 2
+		unsquashfs -l "$TARGET" | sed -r 's|^squashfs-root||g' | grep "/"
+	;;
+	list)
+		ls ~/.squash-apps
+	;;
+	install)
+		echo "Not implemented yet" >&2
+	;;
+	pack)
+		shift 1
+		! [ -d $1 ] && echo "squashapp pack: $1 is not a directory" && exit 1
+		if [ -f $1.squash.app ] ; then
+			echo -n "Overwrite $1.squash.app?(Y/n)"
+			read ans  
+			[ "$ans" != "Y" ] && [ "$ans" != "y" ] && [ "$ans" != "" ] && exit 1
+			! unlink $1.squash.app && echo "squashapp pack: failed to remove $1.squash.app" >&2 && exit 1
+		fi
+		mksquashfs $1 $1.squash.app
+	;;
+	unpack)
+		shift 1
+		
+	;;
+	*)
+		if [ -f $1 ] ; then
+			exec $0 run "$@"
+		else
+			echo "Usage:" >&2
+			echo "	squashapp <run|ls|sign|verify|pack|unpack> [args...]" >&2
+		fi
+esac
+
