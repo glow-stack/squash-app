@@ -5,7 +5,6 @@ if [ "$(which mksquashfs)" == "" ] ; then
 	exit 2
 fi
 
-
 # for number $1, check if $1 is in [$2, $3]
 in_range() {
 	[ $1 -ge $2 ] && [ $1 -le $3 ]
@@ -15,47 +14,20 @@ in_range() {
 usage() {
 	echo "Usage:" >&2 && echo "	$1" >&2 && exit 1
 }
+
 # $@ - messages
 die() {
 	echo "$@" >&2
 	exit 1
 }
 
-MAXARGS=32000
-
+MAXARGS=10000
 case $1 in
-	run)
-		in_range $# 2 $MAXARGS || usage "squash run your-app.squash.app" 
-		TARGET="$2"
-		BIN="$(readlink -f $TARGET)"
-		NAME="$(basename $TARGET)"
-		shift 2
-		[ "$BIN" != "" ] || die "Cannot find file to run: '$TARGET'" 
-		DEST="$HOME/.squash-apps/$NAME"
-		CACHE="$HOME/.squash-apps/.cache"
-		mkdir -p "$DEST"
-		mkdir -p "$CACHE"
-		if ! diff "$BIN" "$CACHE/$NAME" > /dev/null ; then
-			cp "$BIN" "$CACHE/$NAME"
-			cd $DEST
-			rm -rf *
-			unsquashfs -f $BIN | grep -v created && mv squashfs-root/* . && rmdir squashfs-root
-		else
-			TS=$(stat -f %m "$CACHE/$NAME")
-			DATE=$(date -r $TS)
-			echo "Running from cache (last modifed $DATE)" >&2 
-		fi
-		if uname | grep "FreeBSD" > /dev/null ; then
-			echo "SquashApp on FreeBSD: trying to sandbox inside of jail"
-			
-		fi
-		cd $DEST && exec "$DEST/bin/init"
-	;;	
-	cat)
-		in_range $# 2 $MAXARGS || usage "squash cat app1.squash.app app2.squash.app ..." 
+	info)
+		in_range $# 2 $MAXARGS || usage "squash info app1.squash app2.squash ..." 
 		shift 1
 		for arg in $@ ; do
-			unsquashfs -l "$arg" | sed -r 's|^squashfs-root||g' | grep "/"
+			$arg --squash-boot fs
 		done
 	;;
 	list)
@@ -72,15 +44,21 @@ case $1 in
 	;;
 	pack)
 		shift 1
-		APP="$1.squash.app"
+		DIR="$1"
+		APP="$DIR.squash"
+		BOOT="boot.sh"
+		FS="/tmp/$NAME.fs"
 		[ -d $1 ] || die "squash pack: $1 is not a directory"
 		if [ -f "$APP" ] ; then
-			echo -n "Overwrite $1.squash.app?(Y/n)"
+			echo -n "Overwrite $APP ? (Y/n):"
 			read ans 
 			[ "$ans" != "Y" ] && [ "$ans" != "y" ] && [ "$ans" != "" ] && die "squash pack: stopped, $APP is intact"
-			unlink "$APP" || die "squash pack: failed to remove $APP"
+			unlink "$FS" || die "squash pack: failed to remove $APP"
 		fi
-		mksquashfs $1 $1.squash.app
+		echo mksquashfs "$DIR" "$FS"
+		mksquashfs "$DIR" "$FS" || die "couldn't produce squashfs image"
+		"./$BOOT" --squash-boot pad > "$APP" || die "failed to create padded bootloader script from $BOOT file"
+		cat "$FS" >> "$APP" && chmod +x "$APP" || die "failed to combine squash app image"
 	;;
 	unpack)
 		shift 1		
