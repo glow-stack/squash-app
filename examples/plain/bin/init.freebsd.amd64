@@ -1,0 +1,2 @@
+#!/bin/busybox.freebsd.amd64 sh
+echo "$greeting, $@"

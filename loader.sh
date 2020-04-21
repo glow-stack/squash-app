@@ -40,7 +40,7 @@ ARCH=$(uname -m)
 OS=$(uname -s | tr [A-Z] [a-z])
 CMD=run
 
-echo "/bin/init.$OS.$ARCH" >&2
+INIT="/bin/init.$OS.$ARCH"
 
 if [ $# -gt 1 ] && [ "$1" == "--squash-boot" ]; then
 	CMD="$2"
@@ -49,10 +49,13 @@ fi
 
 populate_fs_cache() {
 	IMAGE="$CACHE/$NAME"
-	if ! diff "$BIN" "$IMAGE" > /dev/null ; then
-		dd if="$BIN" bs=4k skip=1 of="$IMAGE" 2>/dev/null || die "failed to copy fs image"
+	dd if="$BIN" bs=4k skip=1 of="/tmp/$NAME.squashfs" 2>/dev/null || die "failed to copy fs image"
+	if ! diff "/tmp/$NAME.squashfs" "$IMAGE" > /dev/null 2>&1 ; then 
+		mv "/tmp/$NAME.squashfs" "$IMAGE"
+		unlink "$IMAGE.up-to-date" 2>/dev/null # remove up-to-date cache flag file
+	else
+		touch "$IMAGE.up-to-date" # set up-to-date flag file
 	fi
-	touch $IMAGE.ready # create a flag file
 }
 
 case $CMD in 
@@ -69,20 +72,29 @@ case $CMD in
 	;;
 	run)
 		populate_fs_cache
-		if ! [ -f "$IMAGE.ready" ] ; then
+		if ! [ -f "$IMAGE.up-to-date" ] ; then
 			cd "$UNPACKED"
 			rm -rf * || die "failed to cleanup unpacked cache dir: $UNPACKED"
-			echo "Unpacking FS image" >&2
+			echo "Unpacking SquashFS image" >&2
 			unsquashfs -f "$IMAGE" | grep -v created && mv squashfs-root/* . && rmdir squashfs-root
 		else
 			TS=$(stat -f %m "$CACHE/$NAME")
 			DATE=$(date -r $TS)
 			echo "Running from cache (last modifed $DATE)" >&2 
 		fi
-		if uname | grep "FreeBSD" > /dev/null ; then
-			echo "SquashApp on FreeBSD: trying to sandbox inside of jail"	
+		if [ "$OS" == "freebsd" ] ; then
+			echo "TODO: SquashApp on FreeBSD, must run inside jail"	
+			#TODO: setup jail with bind mounts and run /bin/init.freebsd.$arch
 		fi
-		cd $DEST && exec "$DEST/bin/init"
+		# this is a fallback: running unpacked and without sandboxing
+		cd "$UNPACKED"
+                . etc/rc.conf
+		export $(cut -d'=' -f1 etc/rc.conf)
+		read shebang < "bin/init.$OS.$ARCH"
+		CMD=$(echo "$shebang" | sed 's/#!//')
+		echo "Running $INIT $squash_app_args"
+		exec .$CMD .$INIT $squash_app_args
+
 	;;
 	*)
 		echo "Unrecognized squash app bootloader command: '$CMD'">&2

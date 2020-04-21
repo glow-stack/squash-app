@@ -46,14 +46,14 @@ case $1 in
 		shift 1
 		DIR="$1"
 		APP="$DIR.squash"
-		BOOT="boot.sh"
+		BOOT="loader.sh"
 		FS="/tmp/$NAME.fs"
 		[ -d $1 ] || die "squash pack: $1 is not a directory"
 		if [ -f "$APP" ] ; then
 			echo -n "Overwrite $APP ? (Y/n):"
 			read ans 
 			[ "$ans" != "Y" ] && [ "$ans" != "y" ] && [ "$ans" != "" ] && die "squash pack: stopped, $APP is intact"
-			unlink "$FS" || die "squash pack: failed to remove $APP"
+			unlink "$FS" 
 		fi
 		echo mksquashfs "$DIR" "$FS"
 		mksquashfs "$DIR" "$FS" || die "couldn't produce squashfs image"
@@ -67,6 +67,7 @@ case $1 in
 		if [ -f $1 ] ; then
 			exec $0 run "$@"
 		else
+			usage "squash <info|pack|unpack|sign|verify>"
 			echo "Usage:" >&2
 			echo "	squashapp <run|ls|sign|verify|pack|unpack> [args...]" >&2
 		fi
